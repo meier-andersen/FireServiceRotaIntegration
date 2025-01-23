@@ -47,16 +47,16 @@ def on_open(ws):
     }
     ws.send(json.dumps(msg))
 
-aliveCounter = 199
+aliveCounter = 0
 def on_message(ws, message):
     global forceUpdate, aliveCounter
     msg = json.loads(message)
 
     if msg.get("type") == "ping":
-        aliveCounter = aliveCounter + 1
-        if aliveCounter >= 200:
+        aliveCounter = aliveCounter - 1
+        if aliveCounter <= 0:
             _to_terminal("Alive ping")
-            aliveCounter = 0
+            aliveCounter = 199
     
     if msg.get("type") == "ping" or msg.get("type") == "welcome":
       return
