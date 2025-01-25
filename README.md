@@ -11,6 +11,9 @@ In the future, the project will be expanded so it is possible to make http calls
   - You can create a profile and find all information needed for pushover at https://pushover.net/
   - If you do not want admin messages or pushover messages, set the value to 0 instead of 1 at the top of the file
 - Install python-decouple, websocket-client and requests using pip
+  - pip install python-decouple / pip3 install python-decouple
+  - pip install websocket-client / pip3 install websocket-client
+  - pip install python-decouple / pip3 install python-decouple
 
 ## Run:
 - Run app.py (etc python app.py on Windows)
