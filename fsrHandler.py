@@ -56,7 +56,7 @@ def on_message(ws, message):
         aliveCounter = aliveCounter - 1
         if aliveCounter <= 0:
             _to_terminal("Alive ping")
-            aliveCounter = 199
+            aliveCounter = 999
     
     if msg.get("type") == "ping" or msg.get("type") == "welcome":
       return
@@ -74,7 +74,8 @@ def on_message(ws, message):
         rs.push_to_pushover(msg.get("body"), "default")
 
     _to_terminal("----- ALARM -----")
-    print(msg)
+    w.to_incident_log(msg)
+    w.to_terminal(msg.get("body"))
     _to_terminal("----- ALARM -----")
 
 def on_close(ws, close_status_code, close_msg):

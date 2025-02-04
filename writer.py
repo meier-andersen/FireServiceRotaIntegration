@@ -3,7 +3,8 @@ import os
 import requestHandler as re
 
 dest_log = "Log/"
-destError = "Error/"
+dest_error = "Error/"
+dest_incident_log = "Incident/"
 
 def to_terminal(module, msg):
     output = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\t" + module + "\t" + msg
@@ -25,10 +26,10 @@ def to_error(module, tried_to, err_msg, elem):
     err_msg = repr(err_msg)
     try:
         to_terminal("Writer", "Exception occurred - Check error log")
-        if not os.path.isdir(destError):  # Creates dir if it doesn't exist
-            os.mkdir(destError)
+        if not os.path.isdir(dest_error):  # Creates dir if it doesn't exist
+            os.mkdir(dest_error)
 
-        path = os.path.join(destError, datetime.datetime.now().strftime("%Y-%m-%d") + ".log")
+        path = os.path.join(dest_error, datetime.datetime.now().strftime("%Y-%m-%d") + ".log")
         with open(path, 'a+') as f:
             f.write("-----------\n" +
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +
@@ -41,6 +42,14 @@ def to_error(module, tried_to, err_msg, elem):
     except Exception as e:
         _send_pushover_to_admin(module, "Exception while handling an error", e.__class__, " ")
 
+def to_incident_log(msg): 
+    if not os.path.isdir(dest_incident_log):  # Creates dir if it doesn't exist
+        os.mkdir(dest_incident_log)
+
+    path = os.path.join(dest_incident_log, datetime.datetime.now().strftime("%Y-%m-%d") + ".log")
+    with open(path, 'a+') as f:
+        f.write(msg +
+                "\n")
 
 def _send_pushover_to_admin(module, tried_to, err_msg, elem):
     try:
