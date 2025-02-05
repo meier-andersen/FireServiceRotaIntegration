@@ -4,6 +4,7 @@ from websocket import WebSocketApp
 import requestHandler as rs
 import writer as w
 import oauthHandler as oAuth
+import messageHandler as mh
 
 ModuleName = "FSR Handler"
 forceUpdate = False
@@ -50,33 +51,41 @@ def on_open(ws):
 aliveCounter = 0
 def on_message(ws, message):
     global forceUpdate, aliveCounter
-    msg = json.loads(message)
+    try:
+        msg = json.loads(message)
 
-    if msg.get("type") == "ping":
-        aliveCounter = aliveCounter - 1
-        if aliveCounter <= 0:
-            _to_terminal("Alive ping")
-            aliveCounter = 999
-    
-    if msg.get("type") == "ping" or msg.get("type") == "welcome":
-      return
+        if msg.get("type") == "ping":
+            aliveCounter = aliveCounter - 1
+            if aliveCounter <= 0:
+                _to_terminal("Alive ping")
+                aliveCounter = 999
+        
+        if msg.get("type") == "ping" or msg.get("type") == "welcome":
+            return
 
-    if msg.get("type") == "confirm_subscription":
-      _to_terminal("New connection established")
-      return
-    
-    if msg.get("type") == "disconnect" and msg.get("type") == "unauthorized":
-        forceUpdate = True
-        rs.push_to_pushover_admin("Connection was closed because the user was not authorized", "default")
-        return
+        if msg.get("type") == "confirm_subscription":
+            _to_terminal("New connection established")
+            return
+        
+        if msg.get("type") == "disconnect" and msg.get("type") == "unauthorized":
+            forceUpdate = True
+            rs.push_to_pushover_admin("Connection was closed because the user was not authorized", "default")
+            return
+        
+        if msg.get("type") != "incident_alert": 
+            rs.push_to_pushover_admin("Unknown message type. check log", "default")
+            return
 
-    if msg.get("body"):
-        rs.push_to_pushover(msg.get("body"), "default")
+        pushover_msg = mh.generateMessage(msg)
+        rs.push_to_pushover(pushover_msg, "default")
 
-    _to_terminal("----- ALARM -----")
-    w.to_incident_log(msg)
-    w.to_terminal(msg.get("body"))
-    _to_terminal("----- ALARM -----")
+        _to_terminal("----- ALARM -----")
+        w.to_incident_log(msg)
+        w.to_terminal(msg.get("body"))
+        _to_terminal("----- ALARM -----")
+    except Exception as e:
+        print(e)
+        #_to_error("Handle a new msg", e.__class__, "")
 
 def on_close(ws, close_status_code, close_msg):
     _to_terminal('WebSocket closed')

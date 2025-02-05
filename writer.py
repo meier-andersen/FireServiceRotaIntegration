@@ -42,14 +42,19 @@ def to_error(module, tried_to, err_msg, elem):
     except Exception as e:
         _send_pushover_to_admin(module, "Exception while handling an error", e.__class__, " ")
 
-def to_incident_log(msg): 
-    if not os.path.isdir(dest_incident_log):  # Creates dir if it doesn't exist
-        os.mkdir(dest_incident_log)
 
-    path = os.path.join(dest_incident_log, datetime.datetime.now().strftime("%Y-%m-%d") + ".log")
-    with open(path, 'a+') as f:
-        f.write(msg +
-                "\n")
+def to_incident_log(msg): 
+    try:
+        if not os.path.isdir(dest_incident_log):  # Creates dir if it doesn't exist
+            os.mkdir(dest_incident_log)
+
+        path = os.path.join(dest_incident_log, datetime.datetime.now().strftime("%Y-%m-%d") + ".log")
+        with open(path, 'a+') as f:
+            f.write(str(msg) +
+                    "\n")
+    except Exception as e:
+        _send_pushover_to_admin("Writer", "Write to incident log", e.__class__, "")
+
 
 def _send_pushover_to_admin(module, tried_to, err_msg, elem):
     try:

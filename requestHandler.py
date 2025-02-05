@@ -21,7 +21,7 @@ def push_to_pushover(msg, priority):
         _to_error("Push to pushover", e.__class__, msg)
 
 
-def push_to_pushover_admin(msg, priority):
+def push_to_pushover_admin(msg, priority = "default"):
     try:
         if config('ENABLE_ADMIN'):
             data = {'title': config('PUSHOVER_HEADER_ADMIN'),
