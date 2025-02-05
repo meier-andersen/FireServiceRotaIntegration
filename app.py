@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import fsr_handler as fsr
+import fsr_handler
 
 
 def main() -> None:
-    fsr.run()
+    fsr_handler.run()
 
 
 if __name__ == "__main__":
