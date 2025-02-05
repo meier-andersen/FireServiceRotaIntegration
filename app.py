@@ -1,12 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import fsrHandler as fsr
+import fsr_handler as fsr
 
-ModuleName = "Main"
 
-def main():
-  fsr.run()
+def main() -> None:
+    fsr.run()
 
 
 if __name__ == "__main__":
