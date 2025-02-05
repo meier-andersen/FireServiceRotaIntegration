@@ -7,9 +7,7 @@ from decouple import config
 import requests
 
 # Global variables to cache tokens.
-access_token: str | None = None
-# Note: refresh_token is currently unused. Consider implementing refresh logic or removing it.
-refresh_token: str | None = None
+access_token = None
 
 class OAuthError(Exception):
     """Custom exception for OAuth related errors."""
