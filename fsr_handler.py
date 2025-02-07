@@ -112,17 +112,17 @@ def on_message(ws: WebSocketApp, message: str) -> None:
             return
 
         # Process incident alerts only.
-        if msg.get("type") != "incident_alert":
-            request_handler.push_to_pushover_admin("Unknown message type. Check log", "default")
-            return
+        #if msg.get("type") != "incident_alert":
+        #    request_handler.push_to_pushover_admin("Unknown message type. Check log", "default")
+        #    return
 
         # Process the incident alert message.
         pushover_msg: str = message_handler.generateMessage(msg)
         request_handler.push_to_pushover(pushover_msg, "default")
 
         _to_terminal("----- ALARM -----")
-        log_writer.to_incident_log(msg)
         log_writer.to_terminal(msg.get("body"))
+        log_writer.to_incident_log(msg)
         _to_terminal("----- ALARM -----")
     except Exception as e:
         _to_error("Handle a new message", str(e), "")
@@ -148,7 +148,8 @@ def on_error(ws: WebSocketApp, error: Exception) -> None:
         ws (WebSocketApp): The WebSocket connection instance.
         error (Exception): The error encountered.
     """
-    _to_error("WebSocket error", str(error), "")
+    _to_terminal(f"WebSocket error {str(error)}")
+    
 
 
 def _to_terminal(msg: str) -> None:
