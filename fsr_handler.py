@@ -10,7 +10,7 @@ from websocket import WebSocketApp
 import request_handler
 import log_writer
 import oauth_handler
-import message_handler
+import incident_handler
 
 # Module constants and global variables
 MODULE_NAME = "FSR Handler"
@@ -101,6 +101,7 @@ def on_message(ws: WebSocketApp, message: str) -> None:
         # Handle subscription confirmation.
         if msg.get("type") == "confirm_subscription":
             _to_terminal("New connection established")
+            alive_counter = 0
             return
 
         # Check for an unauthorized disconnect.
@@ -110,22 +111,15 @@ def on_message(ws: WebSocketApp, message: str) -> None:
                 "Connection was closed because the user was not authorized", "default"
             )
             return
+        
+        incident_handler.handle_incident(msg)
+        
+        
 
-        # Process incident alerts only.
-        #if msg.get("type") != "incident_alert":
-        #    request_handler.push_to_pushover_admin("Unknown message type. Check log", "default")
-        #    return
-        log_writer.to_incident_log(msg)
 
-        # Process the incident alert message.
-        pushover_msg: str = message_handler.generateMessage(msg)
-        request_handler.push_to_pushover(pushover_msg, "default")
-
-        _to_terminal("----- ALARM -----")
-        log_writer.to_terminal(msg.get("body"))
-        _to_terminal("----- ALARM -----")
     except Exception as e:
-        _to_error("Handle a new message", str(e), "")
+        print(e)
+        #_to_error("Handle a new message", str(e), "")
 
 
 def on_close(ws: WebSocketApp, close_status_code: int, close_msg: str) -> None:
@@ -149,7 +143,6 @@ def on_error(ws: WebSocketApp, error: Exception) -> None:
         error (Exception): The error encountered.
     """
     _to_terminal(f"WebSocket error {str(error)}")
-    
 
 
 def _to_terminal(msg: str) -> None:
