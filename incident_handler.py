@@ -8,12 +8,14 @@ MODULE_NAME = "IncidentHandler"
 
 current_incidents: list = []
 
-def handle_incident(msg: json) -> None:
+def handle_incident(wrapper: json) -> None:
     """
     """
     try:
       _update_list()
-      log_writer.to_incident_log(msg)
+      log_writer.to_incident_log(wrapper)
+
+      msg = wrapper.get("message")
 
       if _is_in_list(msg.get("id")):
         _existing_incident(msg)

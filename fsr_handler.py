@@ -85,8 +85,7 @@ def on_message(ws: WebSocketApp, message: str) -> None:
     """
     global force_update, alive_counter
     try:
-        wrapper = json.loads(message)
-        msg = wrapper.get("message", "")
+        msg = json.loads(message)
 
         # Handle 'ping' messages to manage connection liveness.
         if msg.get("type") == "ping":
