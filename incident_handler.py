@@ -3,6 +3,7 @@ import log_writer
 import message_handler
 import request_handler
 from datetime import datetime, timedelta
+from decouple import config
 
 MODULE_NAME = "IncidentHandler"
 
@@ -20,7 +21,9 @@ def handle_incident(wrapper: json) -> None:
       if _is_in_list(msg.get("id")):
         _existing_incident(msg)
       else:
-         _push_new_incident(msg)     
+         _push_new_incident(msg)
+
+      _check_if_responding(msg)
     except Exception as e:
       _to_error("Handle new incident", str(e), "")
 
@@ -45,20 +48,43 @@ def _add_to_list(msg):
   global current_incidents
   obj = {
      "id": msg.get("id"),
-     "timestamp": datetime.now()
+     "timestamp": datetime.now(),
+     "isResponding": False
   }
   current_incidents.append(obj)
 
 
 def _update_list():
   global current_incidents
-  threshold = datetime.now() - timedelta(minutes=5)
+  threshold = datetime.now() - timedelta(minutes=10)
   current_incidents = [entry for entry in current_incidents if entry["timestamp"] >= threshold]
 
 
 def _is_in_list(id: str) -> bool:
    global current_incidents
    return any(entry["id"] == id for entry in current_incidents)
+
+
+def _check_if_responding(msg) -> None: 
+   global current_incidents
+   if not config('ENABLE_RESPONDING', cast=bool, default=False):
+      return
+   
+   print("here")
+   user = next((item for item in msg.get("incident_responses") if item.get("id") == int(config('RESPONDING_ID'))), None)
+   incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
+
+   if user == None:
+      return
+   if incident == None:
+      return
+   if incident["isResponding"] == True:
+      return
+   if user.get("status") != "acknowledged":
+      return
+   
+   incident["isResponding"] = True
+   request_handler.push_to_pushover(config('RESPONDING_MSG'))
 
 
 def _to_terminal(msg: str) -> None:
