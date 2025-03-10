@@ -70,19 +70,24 @@ def _check_if_responding(msg) -> None:
    if not config('ENABLE_RESPONDING', cast=bool, default=False):
       return
    
-   print("here")
+   print("Inside check if responding")
    user = next((item for item in msg.get("incident_responses") if item.get("id") == int(config('RESPONDING_ID'))), None)
    incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
 
    if user == None:
+      print("Returned false because no user")
       return
    if incident == None:
+      print("Returned false because no incident")
       return
    if incident["isResponding"] == True:
+      print("Returned false because already responding")
       return
    if user.get("status") != "acknowledged":
+      print("Returned false because there was no acknowled status")
       return
-   
+
+   print("Is responding!")   
    incident["isResponding"] = True
    request_handler.push_to_pushover(config('RESPONDING_MSG'))
 
