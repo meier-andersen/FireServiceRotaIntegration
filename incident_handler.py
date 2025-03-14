@@ -71,7 +71,8 @@ def _check_if_responding(msg) -> None:
       return
    
    print("Inside check if responding")
-   user = next((item for item in msg.get("incident_responses") if item.get("id") == int(config('RESPONDING_ID'))), None)
+   userId = int(config('RESPONDING_ID'))
+   user = next((item for item in msg.get("incident_responses") if item.get("user_id") == userId), None)
    incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
 
    if user == None:
