@@ -4,6 +4,7 @@ import message_handler
 import request_handler
 from datetime import datetime, timedelta
 from decouple import config
+import time
 
 MODULE_NAME = "IncidentHandler"
 
@@ -19,7 +20,7 @@ def handle_incident(wrapper: json) -> None:
       msg = wrapper.get("message")
 
       if _is_in_list(msg.get("id")):
-        _existing_incident(msg)
+         _update_people(msg)
       else:
          _push_new_incident(msg)
 
@@ -33,23 +34,32 @@ def _push_new_incident(msg: json):
     _to_terminal("----- NEW INCIDENT -----")
     _to_terminal(msg.get("body"))
     _add_to_list(msg)
+    _update_people(msg)
 
     pushover_msg: str = message_handler.generate_message(msg)
     request_handler.push_to_pushover(pushover_msg, "default")
+    time.sleep(60)
+    _send_update(msg)
   except Exception as e:
     _to_error("Handle a new message", str(e), "")
 
 
-def _existing_incident(msg: json):
-   print("existing incident")
+def _update_people(msg: json):
+   global current_incidents
+   incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
+   for user in msg["incident_responses"]:
+      if user.get("status") == "acknowledged" and not any(entry == user.get("user_name") for entry in incident["people"]):
+         print("adding " + user.get("user_name"))
+         incident["people"].append(user.get("user_name"))
 
 
-def _add_to_list(msg):
+def _add_to_list(msg: json):
   global current_incidents
   obj = {
      "id": msg.get("id"),
      "timestamp": datetime.now(),
-     "isResponding": False
+     "isResponding": False,
+     "people": []
   }
   current_incidents.append(obj)
 
@@ -65,30 +75,23 @@ def _is_in_list(id: str) -> bool:
    return any(entry["id"] == id for entry in current_incidents)
 
 
-def _check_if_responding(msg) -> None: 
+def _check_if_responding(msg: json) -> None: 
    global current_incidents
    if not config('ENABLE_RESPONDING', cast=bool, default=False):
       return
-   
-   print("Inside check if responding")
-   userId = int(config('RESPONDING_ID'))
-   user = next((item for item in msg.get("incident_responses") if item.get("user_id") == userId), None)
+   userName = config('RESPONDING_USER_NAME')
+   user = next((item for item in msg.get("incident_responses") if item.get("user_name") == userName), None)
    incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
 
    if user == None:
-      print("Returned false because no user")
       return
    if incident == None:
-      print("Returned false because no incident")
       return
    if incident["isResponding"] == True:
-      print("Returned false because already responding")
       return
    if user.get("status") != "acknowledged":
-      print("Returned false because there was no acknowled status")
       return
-
-   print("Is responding!")   
+   
    incident["isResponding"] = True
    request_handler.push_to_pushover(config('RESPONDING_MSG'))
 
@@ -114,3 +117,8 @@ def _to_error(tried_to: str, err_msg: str, obj: object) -> None:
     """
     log_writer.to_error(MODULE_NAME, tried_to, err_msg, obj)
 
+def _send_update(msg: json) -> None:
+   incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
+   people = len(incident["people"])
+   message = str(people) + ' brandfolk på vej'
+   request_handler.push_to_pushover(message)
