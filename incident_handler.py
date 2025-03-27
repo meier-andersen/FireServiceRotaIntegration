@@ -20,10 +20,9 @@ def handle_incident(wrapper: json) -> None:
       msg = wrapper.get("message")
 
       if _is_in_list(msg.get("id")):
-         _update_people(msg)
+         _handle_existing_incident(msg)
       else:
          _push_new_incident(msg)
-
       _check_if_responding(msg)
     except Exception as e:
       _to_error("Handle new incident", str(e), "")
@@ -38,10 +37,23 @@ def _push_new_incident(msg: json):
 
     pushover_msg: str = message_handler.generate_message(msg)
     request_handler.push_to_pushover(pushover_msg, "default")
-    time.sleep(60)
-    _send_update(msg)
   except Exception as e:
     _to_error("Handle a new message", str(e), "")
+
+
+def _handle_existing_incident(msg):
+   global current_incidents
+   _update_people(msg)
+   incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
+   threshold = incident["timestamp"] + timedelta(seconds=7)
+
+   if incident["hasSentPeople"]:
+      return
+   if datetime.now() < threshold:
+      return
+   
+   incident["hasSentPeople"] = True
+   _send_update(msg)
 
 
 def _update_people(msg: json):
@@ -59,7 +71,8 @@ def _add_to_list(msg: json):
      "id": msg.get("id"),
      "timestamp": datetime.now(),
      "isResponding": False,
-     "people": []
+     "people": [],
+     "hasSentPeople": False
   }
   current_incidents.append(obj)
 
@@ -120,5 +133,5 @@ def _to_error(tried_to: str, err_msg: str, obj: object) -> None:
 def _send_update(msg: json) -> None:
    incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
    people = len(incident["people"])
-   message = str(people) + ' brandfolk på vej'
+   message = str(people) + ' retursvar'
    request_handler.push_to_pushover(message)
