@@ -45,7 +45,7 @@ def _handle_existing_incident(msg):
    global current_incidents
    _update_people(msg)
    incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
-   threshold = incident["timestamp"] + timedelta(seconds=7)
+   threshold = incident["timestamp"] + timedelta(seconds=45)
 
    if incident["hasSentPeople"]:
       return
