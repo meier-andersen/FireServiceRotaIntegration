@@ -43,6 +43,7 @@ def _push_new_incident(msg: json):
 
 def _handle_existing_incident(msg):
    global current_incidents
+   _to_terminal("Handle existing incident")
    _update_people(msg)
    incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
    threshold = incident["timestamp"] + timedelta(seconds=45)
