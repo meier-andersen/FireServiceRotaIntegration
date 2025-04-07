@@ -11,6 +11,7 @@ import request_handler
 import log_writer
 import oauth_handler
 import incident_handler
+import asyncio
 
 # Module constants and global variables
 MODULE_NAME = "FSR Handler"
@@ -112,7 +113,7 @@ def on_message(ws: WebSocketApp, message: str) -> None:
             )
             return
         
-        incident_handler.handle_incident(msg)
+        asyncio.create_task(incident_handler.handle_incident(msg))
         
         
 

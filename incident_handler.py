@@ -4,13 +4,13 @@ import message_handler
 import request_handler
 from datetime import datetime, timedelta
 from decouple import config
-import time
+import asyncio
 
 MODULE_NAME = "IncidentHandler"
 
 current_incidents: list = []
 
-def handle_incident(wrapper: json) -> None:
+async def handle_incident(wrapper: json) -> None:
     """
     """
     try:
@@ -22,13 +22,13 @@ def handle_incident(wrapper: json) -> None:
       if _is_in_list(msg.get("id")):
          _handle_existing_incident(msg)
       else:
-         _push_new_incident(msg)
+         await _push_new_incident(msg)
       _check_if_responding(msg)
     except Exception as e:
       _to_error("Handle new incident", str(e), "")
 
 
-def _push_new_incident(msg: json): 
+async def _push_new_incident(msg: json): 
   try:
     _to_terminal("----- NEW INCIDENT -----")
     _to_terminal(msg.get("body"))
@@ -37,12 +37,16 @@ def _push_new_incident(msg: json):
 
     pushover_msg: str = message_handler.generate_message(msg)
     request_handler.push_to_pushover(pushover_msg, "default")
+    await asyncio.sleep(60)
+    _send_update(msg)
+
   except Exception as e:
     _to_error("Handle a new message", str(e), "")
 
 
 def _handle_existing_incident(msg):
    global current_incidents
+   return
    _to_terminal("Handle existing incident")
    _update_people(msg)
    incident = next((entry for entry in current_incidents if entry["id"] == msg.get("id")), None)
