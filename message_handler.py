@@ -55,7 +55,7 @@ def _build_coordinates(loc: str, addr: dict) -> str:
     Returns:
         str: A string containing coordinates or the original location.
     """
-    if "LV RUTE" in loc or "MTV" in loc:
+    if "LV RUTE" in loc or "MTV" in loc or "redningsnummer" in loc:
         return f"{addr.get('latitude')},{addr.get('longitude')}"
     return loc
 
