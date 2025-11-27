@@ -119,7 +119,6 @@ def on_message(ws: WebSocketApp, message: str) -> None:
 
     except Exception as e:
         print(e)
-        #_to_error("Handle a new message", str(e), "")
 
 
 def on_close(ws: WebSocketApp, close_status_code: int, close_msg: str) -> None:
